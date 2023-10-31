@@ -1,9 +1,10 @@
 snowball_fight <- "snowball_fight/"
+debug <- true
 
 // thirdparty
 // basically llzard lib from vsh (todo: add url)
 //  includes modifications by dust
-IncludeScript(momentus + "__lizardlib/util.nut")
+IncludeScript(snowball_fight + "__lizardlib/util.nut")
 // https://tf2maps.net/downloads/vscript-give_tf_weapon.14897/
 Include("give_tf_weapon/_master.nut")
 // https://github.com/ficool2/vscript_trace_filter
@@ -15,9 +16,10 @@ Include("/util/helpers.nut")
 Include("/util/input_manager.nut")
 Include("/util/weapon_helpers.nut")
 
-Include("game_setup.nut")
 //Include("tables.nut")
 Include("weapons_and_traits.nut")
+
+Convars.SetValue("mp_restartgame", 1)
 
 // TODO
 //  fix need to rerun script twice to work
