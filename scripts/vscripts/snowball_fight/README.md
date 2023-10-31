@@ -1,11 +1,10 @@
-momentus
+snowball fight!
 
-we're making a game in vscript cause we're insane
+arena-esque gamemode where you must freeze the opposing team using snowballs!
 
 how to install
 - click green code button up there and then "download zip"
-- open `momentus-main` then extract those files into `[gamedirectory]/tf/custom/momentus/scripts/vscripts/momentus`
+- open `tf2-vscript-snowball-fight-main` then extract those files into `[gamedirectory]/tf/custom/snowball_fight/scripts/vscripts/snowball_fight`
 
 how to run
-- `script_execute momentus/exec` in tf2 console
-- todo: make this a special shortcut heh
+- `script_execute snowball_fight/exec` in tf2 console (you may need to call twice)
