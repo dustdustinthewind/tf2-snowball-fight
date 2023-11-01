@@ -2,14 +2,13 @@
 
 PrecacheModel(baseball_projectile_model)
 
-BASE_DAMAGE <- 80.0
+BASE_DAMAGE <- 110
 
 class snowball extends hsdm_trait
 {
     weapon = null
 
     snowballs = []
-    snowball_dmg = []
 
     function OnApply()
     {
@@ -27,7 +26,10 @@ class snowball extends hsdm_trait
         push_snowball()
         charge_snowball()
         release_snowball()
+    }
 
+    function OnFrameTickAliveOrDead()
+    {
         // collision
         snowball_collide_with_player()
     }
@@ -42,24 +44,20 @@ class snowball extends hsdm_trait
         snowball_projectile.ApplyAbsVelocityImpulse
         (
             (player.EyeAngles() + QAngle(-4, 0.64, 0)).Forward()
-            * 1666
-            * max(0.5, charge_time)
+            * 1024
+            * max(0.5, last_charge_time)
         )
         
         snowballs.push(snowball_projectile)
-        snowball_dmg.push(max(BASE_DAMAGE, BASE_DAMAGE*charge_time))
-        snowball_projectile = null
-        charge_time = 0
-        last_charge_time = 0
     }
 
-    charge_time = 0
+    charge_time = 0.0
     last_charge_time = 0
-    MAX_CHARGE = 2
+    MAX_CHARGE = 1.5
 
     function charge_snowball()
     {
-        if (!player.button_down(IN_ATTACK)) return
+        if (!player.button_down(IN_ATTACK) || !can_fire) return
 
         charge_time += FrameTime()
         charge_time = min(charge_time, MAX_CHARGE)
@@ -73,10 +71,11 @@ class snowball extends hsdm_trait
     }
 
     snowball_projectile = null
+    can_fire = true
 
     function release_snowball()
     {
-        if (!player.button_released(IN_ATTACK)) return
+        if (!player.button_released(IN_ATTACK) || !can_fire) return
 
         snowball_projectile = Entities.CreateByClassname("tf_projectile_stun_ball")
         //Entities.DispatchSpawn(snowball_projectile)
@@ -92,6 +91,7 @@ class snowball extends hsdm_trait
         snowball_projectile.SetOwner(player)
 
         first_frame_after_throw = true
+        can_fire = false
 
         player.RemoveCustomAttribute("move speed penalty")
 
@@ -101,46 +101,50 @@ class snowball extends hsdm_trait
 
     function snowball_collide_with_player()
     {
-        local to_destroy = []
-        for (local i = 0; i < snowballs.len(); i++)
-        {
-            local player = player
+        if (!snowball_projectile) return
 
-            local trace = fire_trace_hull
-            (
-                snowballs[i].GetOrigin(),
-                snowballs[i].GetOrigin(),
-                1107296257,
-                snowballs[i],
-                snowballs[i].GetBoundingMins() * 2,
-                snowballs[i].GetBoundingMaxs() * 2,
-                function(entity)
-                {
-                    if (entity != player)
-                        return TRACE_STOP
-                    return TRACE_CONTINUE
-                },
-                false
-            )
-            
-            if ("enthit" in trace)
+        local player = player
+
+        local trace = fire_trace_hull
+        (
+            snowball_projectile.GetOrigin(),
+            snowball_projectile.GetOrigin(),
+            1107296257,
+            snowball_projectile,
+            snowball_projectile.GetBoundingMins() * 2,
+            snowball_projectile.GetBoundingMaxs() * 2,
+            function(entity)
             {
-                if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
-                {
-                    slow_and_damage(trace.enthit, player, snowball_dmg[i], snowballs[i].GetOrigin())
-                    to_destroy.push(snowballs[i])
-                    snowball_dmg.remove(i)
-                }
-                snowballs.remove(i)
-            }
-        }
+                if (entity != player)
+                    return TRACE_STOP
+                return TRACE_CONTINUE
+            },
+            false
+        )
 
-        foreach (snowball in to_destroy)
-            snowball.Destroy()
+        if ("enthit" in trace || snowball_projectile.GetVelocity() == Vector(0,0,0))
+        {
+            if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
+            {
+                damage_victim
+                (
+                    trace.enthit,
+                    player,
+                    max(BASE_DAMAGE, BASE_DAMAGE*charge_time),
+                    snowball_projectile.GetOrigin()
+                )
+                snowball_projectile.Destroy()
+            }
+
+            snowball_projectile = null
+            can_fire = true
+            charge_time = 0.0
+            last_charge_time = 0
+        }
     }
 }
 
-slow_and_damage <- function(victim, player, damage, origin)
+damage_victim <- function(victim, player, damage, origin)
 {
     victim.TakeDamageCustom
     (
