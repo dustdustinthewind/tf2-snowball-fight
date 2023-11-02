@@ -9,6 +9,8 @@ IncludeScript(snowball_fight + "__lizardlib/util.nut")
 Include("give_tf_weapon/_master.nut")
 // https://github.com/ficool2/vscript_trace_filter
 Include("ficool2/trace_filter.nut")
+// https://tf2maps.net/downloads/simple-mvm-revive-marker.15222/
+Include("fiend/reviveMarker.nut")
 
 Include("/util/entities.nut")
 Include("/util/debug.nut")
