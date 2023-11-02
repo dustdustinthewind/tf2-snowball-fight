@@ -2,7 +2,9 @@
 
 PrecacheModel(baseball_projectile_model)
 
-BASE_DAMAGE <- 110
+BASE_DAMAGE <- 90
+MIN_DAMAGE <- 50
+MAX_CHARGE <- 2
 
 class snowball extends hsdm_trait
 {
@@ -43,9 +45,10 @@ class snowball extends hsdm_trait
         first_frame_after_throw = false
         snowball_projectile.ApplyAbsVelocityImpulse
         (
-            (player.EyeAngles() + QAngle(-4, 0.64, 0)).Forward()
+            ((player.EyeAngles() + QAngle(-4, 0.64, 0)).Forward()
             * 1024
-            * max(0.5, last_charge_time)
+            * max(0.5, last_charge_time))
+            + (player.GetVelocity() * 0.5)
         )
         
         snowballs.push(snowball_projectile)
@@ -53,7 +56,6 @@ class snowball extends hsdm_trait
 
     charge_time = 0.0
     last_charge_time = 0
-    MAX_CHARGE = 1.5
 
     function charge_snowball()
     {
@@ -122,7 +124,7 @@ class snowball extends hsdm_trait
             false
         )
 
-        if ("enthit" in trace || snowball_projectile.GetVelocity() == Vector(0,0,0))
+        if ("enthit" in trace)
         {
             if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
             {
@@ -130,17 +132,26 @@ class snowball extends hsdm_trait
                 (
                     trace.enthit,
                     player,
-                    max(BASE_DAMAGE, BASE_DAMAGE*charge_time),
+                    max(MIN_DAMAGE, BASE_DAMAGE*last_charge_time),
                     snowball_projectile.GetOrigin()
                 )
                 snowball_projectile.Destroy()
             }
 
-            snowball_projectile = null
-            can_fire = true
-            charge_time = 0.0
-            last_charge_time = 0
+            snowball_cooldown_over()
         }
+        else if (!first_frame_after_throw && snowball_projectile.GetVelocity().Length() < 10)
+        {
+            snowball_cooldown_over()
+        }
+    }
+
+    function snowball_cooldown_over()
+    {
+        snowball_projectile = null
+        can_fire = true
+        charge_time = 0.0
+        last_charge_time = 0
     }
 }
 
