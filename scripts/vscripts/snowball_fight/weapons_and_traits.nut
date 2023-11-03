@@ -1,6 +1,4 @@
 weapons_and_traits <- [
-	"hsdm_trait.nut"
-
 	"snowball.nut"
 	"chill.nut"
 ]

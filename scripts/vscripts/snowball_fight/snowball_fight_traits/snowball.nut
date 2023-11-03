@@ -6,7 +6,7 @@ BASE_DAMAGE <- 90
 MIN_DAMAGE <- 50
 MAX_CHARGE <- 2
 
-class snowball extends hsdm_trait
+class snowball extends CharacterTrait
 {
     weapon = null
 
@@ -21,7 +21,7 @@ class snowball extends hsdm_trait
         if (!debug)
             player.AddCond(TF_COND_CANNOT_SWITCH_FROM_MELEE)
     }
-    
+
     function OnFrameTickAlive()
     {
         // throwing snowball
@@ -41,7 +41,7 @@ class snowball extends hsdm_trait
     function push_snowball()
     {
         if (!first_frame_after_throw) return
-        
+
         first_frame_after_throw = false
         snowball_projectile.ApplyAbsVelocityImpulse
         (
@@ -50,7 +50,7 @@ class snowball extends hsdm_trait
             * max(0.5, last_charge_time))
             + (player.GetVelocity() * 0.5)
         )
-        
+
         snowballs.push(snowball_projectile)
     }
 
@@ -67,7 +67,7 @@ class snowball extends hsdm_trait
         {
             player.AddCustomAttribute("move speed penalty", clamp(0.1, 1, 1.0/charge_time/MAX_CHARGE), -1)
             last_charge_time = charge_time
-        }    
+        }
 
         // animation of pulling snowball back
     }

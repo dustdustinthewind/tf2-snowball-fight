@@ -1,4 +1,4 @@
-class chill extends hsdm_trait
+class chill extends CharacterTrait
 {
 
     function OnApply()
@@ -34,7 +34,7 @@ class chill extends hsdm_trait
 
         local hp_percentage = max(0.6, 1.0*player.GetHealth() / player.GetMaxHealth())
         player.AddCustomAttribute("move speed bonus", hp_percentage, -1)
-        
+
         last_frame_hp = player.GetHealth()
     }
 }
