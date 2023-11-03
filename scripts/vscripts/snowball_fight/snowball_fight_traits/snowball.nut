@@ -2,9 +2,13 @@
 
 PrecacheModel(baseball_projectile_model)
 
-BASE_DAMAGE <- 90
-MIN_DAMAGE <- 50
+WEAK_CHARGE <- 0.5
+FULL_CHARGE <- 1.75
 MAX_CHARGE <- 2
+
+WEAK_HIT_DMG <- 1.0 / 2.5
+REG_HIT_DMG  <- 1.0 / 1.5
+FULL_HIT_DMG_BONUS <- 25
 
 class snowball extends CharacterTrait
 {
@@ -80,14 +84,14 @@ class snowball extends CharacterTrait
         if (!player.button_released(IN_ATTACK) || !can_fire) return
 
         snowball_projectile = Entities.CreateByClassname("tf_projectile_stun_ball")
-        //Entities.DispatchSpawn(snowball_projectile)
+        //Entities.DispatchSpawn(snowball_projectile) doing this makes it act like sandman ball, how to remove properties?
 
         snowball_projectile.SetModel(baseball_projectile_model)
         SetPropInt(snowball_projectile, "movecollide", 1)
         SetPropEntity(snowball_projectile, "m_hEffectEntity", player)
         snowball_projectile.SetCollisionGroup(13)
         snowball_projectile.SetMoveType(5, 1)
-        //snowball_projectile.SetSolid(3)
+        //snowball_projectile.SetSolid(3) bounces off players (maybe for demo stickyballs)
         set_origin(snowball_projectile, player.EyePosition() - player.GetLeftVector() * -10)
         snowball_projectile.SetTeam(player.GetTeam())
         snowball_projectile.SetOwner(player)
@@ -128,11 +132,17 @@ class snowball extends CharacterTrait
         {
             if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
             {
+				local damage = last_charge_time < WEAK_CHARGE
+								? WEAK_HIT_DMG
+								: REG_HIT_DMG
+
+				local dmg_bonus = last_charge_time >= FULL_CHARGE ? FULL_HIT_DMG_BONUS : 0
+
                 damage_victim
                 (
                     trace.enthit,
                     player,
-                    max(MIN_DAMAGE, BASE_DAMAGE*last_charge_time),
+                    (damage * trace.enthit.GetMaxHealth()) + dmg_bonus,
                     snowball_projectile.GetOrigin()
                 )
                 snowball_projectile.Destroy()
@@ -156,7 +166,7 @@ class snowball extends CharacterTrait
 }
 
 damage_victim <- function(victim, player, damage, origin)
-{
+{	victim.SetHealth(victim.GetHealth() - damage + 1)
     victim.TakeDamageCustom
     (
         player,
@@ -164,7 +174,7 @@ damage_victim <- function(victim, player, damage, origin)
         null,
         Vector(0,0,0),
         origin,
-        damage,
+        0.2,
         32768,
         22
     )
