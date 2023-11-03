@@ -20,7 +20,10 @@ class chill extends CharacterTrait
 
     function regen_health()
     {
-        if (Time() < last_regen + REGEN_COOLDOWN || player.GetHealth() == player.GetMaxHealth()) return
+        if (Time() < last_regen + REGEN_COOLDOWN
+			|| player.GetHealth() == player.GetMaxHealth()
+			|| player.GetPlayerClass() == 5 /*medic*/)
+				return
 
         last_regen = Time()
         player.SetHealth(player.GetHealth() + regen_amount)
