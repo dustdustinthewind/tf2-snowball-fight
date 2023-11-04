@@ -19,14 +19,15 @@ REVIVE_LENGTH <- 250
 class freeze extends CharacterTrait
 {
 	revive_marker = reviveMarker()
-	revive_model = null
+	revive = null
 
 	function OnDeath(attacker, params)
 	{
-		revive_model = reviveMarker.spawnReviveMarker(player, player.GetMaxHealth())
-		revive_model.SetModel(player_models[player.GetPlayerClass()])
-		set_origin(revive_model, revive_model.GetOrigin() - Vector(0, 0, 40))
-		revive_model.SetVelocity(player.GetVelocity() * 0.5)
+		revive = reviveMarker.spawnReviveMarker(player, player.GetMaxHealth())
+		revive.SetModel(player_models[player.GetPlayerClass()])
+		SetPropInt(revive, "m_nSkin", revive.GetTeam() - 2)
+		set_origin(revive, revive.GetOrigin() - Vector(0, 0, 40))
+		revive.SetVelocity(player.GetVelocity() * 0.5)
 		//if (!debug)
 			SetPropInt(player, "m_Shared.m_nPlayerState", 3) // Force player to be in the dying state so that they don't respawn
 	}
@@ -35,6 +36,13 @@ class freeze extends CharacterTrait
 	{
 		revive()
 		stop_reviving()
+	}
+
+	function OnFrameTickAliveOrDead()
+	{
+		if (IsPlayerAlive(player) || !revive) return
+
+		revive.StopSound("Medic.AutoCallerAnnounce")
 	}
 
 	revive_location = null
@@ -55,7 +63,7 @@ class freeze extends CharacterTrait
 			false
 		)
 
-		if (!("enthit" in trace) || trace.enthit.GetClassname() != "entity_revive_marker") return
+		if (!("enthit" in trace) || trace.enthit.GetClassname() != "entity_revive_marker" || trace.enthit.GetTeam() != player.GetTeam()) return
 
 		set_origin(player, revive_location)
 		damage_victim(trace.enthit, player, -1, trace.endpos)
