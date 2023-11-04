@@ -2,13 +2,15 @@
 
 PrecacheModel(baseball_projectile_model)
 
-WEAK_CHARGE <- 0.5
-FULL_CHARGE <- 1.75
-MAX_CHARGE <- 2
+WEAK_CHARGE <- 0.75
+FULL_CHARGE <- 2
+MAX_CHARGE <- 2.25
 
-WEAK_HIT_DMG <- 1.0 / 2.5
-REG_HIT_DMG  <- 1.0 / 1.5
+WEAK_HIT_DMG       <- 1.0 / 2.5
+REG_HIT_DMG        <- 1.0 / 1.5
 FULL_HIT_DMG_BONUS <- 25
+
+HEAVY_DMG_RES <- 0.6
 
 SNOWBALL_COOLDOWN <- 0.8
 
@@ -41,20 +43,6 @@ class snowball extends CharacterTrait
     }
 
     first_frame_after_throw = false
-
-    function push_snowball()
-    {
-        if (!first_frame_after_throw) return
-
-        first_frame_after_throw = false
-        snowball_projectile.ApplyAbsVelocityImpulse
-        (
-            ((player.EyeAngles() + QAngle(-4, 0.64, 0)).Forward()
-            * 1024
-            * max(0.5, last_charge_time))
-            + (player.GetVelocity() * 0.5)
-        )
-    }
 
     charge_time = 0.0
     last_charge_time = 0
@@ -105,6 +93,20 @@ class snowball extends CharacterTrait
         can_fire_next = Time() + SNOWBALL_COOLDOWN
     }
 
+    function push_snowball()
+    {
+        if (!first_frame_after_throw) return
+
+        first_frame_after_throw = false
+        snowball_projectile.ApplyAbsVelocityImpulse
+        (
+            ((player.EyeAngles() + QAngle(-4, 0.64, 0)).Forward()
+            * 1024
+            * max(0.6, last_charge_time))
+            + (player.GetVelocity() * 0.5)
+        )
+    }
+
     function snowball_collide_with_player()
     {
         if (!snowball_projectile) return
@@ -134,11 +136,13 @@ class snowball extends CharacterTrait
             if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
             {
 				local damage = last_charge_time < WEAK_CHARGE
-								? WEAK_HIT_DMG
-								: REG_HIT_DMG
+					? WEAK_HIT_DMG
+					: REG_HIT_DMG
+				damage *= trace.enthit.GetPlayerClass() == 6 /*heavy*/
+					? HEAVY_DMG_RES
+					: 1.0
 
 				local dmg_bonus = last_charge_time >= FULL_CHARGE ? FULL_HIT_DMG_BONUS : 0
-
                 damage_victim
                 (
                     trace.enthit,
@@ -171,7 +175,7 @@ class snowball extends CharacterTrait
 }
 
 damage_victim <- function(victim, player, damage, origin)
-{	victim.SetHealth(victim.GetHealth() - damage + 1)
+{	victim.SetHealth(victim.GetHealth() - damage + 1) // damage player indirectly and without triggering hurt sounds
     victim.TakeDamageCustom
     (
         player,
@@ -179,6 +183,9 @@ damage_victim <- function(victim, player, damage, origin)
         null,
         Vector(0,0,0),
         origin,
+		// rounds to 0 damage
+		//  will allow attacker to gain kill credit on victim
+		//  but wont trigger damage number for attacker
         0.2,
         32768,
         22
