@@ -4,7 +4,6 @@ class chill extends CharacterTrait
     function OnApply()
     {
         last_frame_hp = player.GetMaxHealth()
-        player.AddCustomAttribute("SET BONUS: health regen set bonus", 10, -1)
     }
 
     function OnFrameTickAlive()
