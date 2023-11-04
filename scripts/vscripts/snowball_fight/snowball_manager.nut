@@ -2,7 +2,7 @@
 
 ::snowballs <- []
 
-MAX_SNOWBALLS <- 36
+MAX_SNOWBALLS <- debug ? 5 : 36
 
 AddListener("tick_frame", 0, function()
 {
@@ -22,27 +22,22 @@ function player_pickup_snowball()
 {
 	foreach (index, snowball in snowballs)
 	{
-		printl("hello")
-		local trace = fire_trace_hull
-		(
-			snowball_projectile.GetOrigin(),
-			snowball_projectile.GetOrigin(),
-			1107296257,
-			snowball_projectile,
-			snowball_projectile.GetBoundingMins() * 2,
-			snowball_projectile.GetBoundingMaxs() * 2,
-			function(entity)
-			{
-				if (entity != player)
-					return TRACE_STOP
-				return TRACE_CONTINUE
-			},
-			false
-		)
+		local trace = fire_trace
+        (
+            snowball.GetOrigin()+Vector(0,0,20),
+            snowball.GetOrigin()+Vector(0,0,50),
+            1107296257,
+            snowball,
+            function(entity)
+            {
+				return TRACE_STOP
+            },
+            false
+        )
 
 		if ("enthit" in trace)
 		{
-			if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
+			if (trace.enthit.GetClassname() == "player")
 			{
 				snowballs.remove(index).Kill()
 				// give snowball to player

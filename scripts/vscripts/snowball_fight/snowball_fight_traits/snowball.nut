@@ -130,6 +130,7 @@ class snowball extends CharacterTrait
 
         if ("enthit" in trace)
         {
+			local to_manager = true
             if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
             {
 				local damage = last_charge_time < WEAK_CHARGE
@@ -146,8 +147,11 @@ class snowball extends CharacterTrait
                     snowball_projectile.GetOrigin()
                 )
                 snowball_projectile.Destroy()
+				to_manager = false
             }
 
+			if (to_manager)
+				snowballs.push(snowball_projectile)
             snowball_hit_something()
         }
         else if (!first_frame_after_throw && snowball_projectile.GetVelocity().Length() < 10)
