@@ -1,5 +1,4 @@
 snowball_fight <- "snowball_fight/"
-debug <- true
 
 // thirdparty
 // basically llzard lib from vsh (todo: add url)
