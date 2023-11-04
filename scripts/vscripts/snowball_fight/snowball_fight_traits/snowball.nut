@@ -54,8 +54,6 @@ class snowball extends CharacterTrait
             * max(0.5, last_charge_time))
             + (player.GetVelocity() * 0.5)
         )
-
-        snowballs.push(snowball_projectile)
     }
 
     charge_time = 0.0
@@ -150,15 +148,16 @@ class snowball extends CharacterTrait
                 snowball_projectile.Destroy()
             }
 
-            snowball_cooldown_over()
+            snowball_hit_something()
         }
         else if (!first_frame_after_throw && snowball_projectile.GetVelocity().Length() < 10)
         {
-            snowball_cooldown_over()
+			snowballs.push(snowball_projectile)
+            snowball_hit_something()
         }
     }
 
-    function snowball_cooldown_over()
+    function snowball_hit_something()
     {
         snowball_projectile = null
         can_fire = true
