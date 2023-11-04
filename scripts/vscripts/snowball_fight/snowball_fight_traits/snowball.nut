@@ -14,9 +14,13 @@ HEAVY_DMG_RES <- 0.6
 
 SNOWBALL_COOLDOWN <- 0.8
 
+MAX_SNOWBALL_COUNT <- 5
+
 class snowball extends CharacterTrait
 {
     weapon = null
+
+	snowball_count = 0
 
     function OnApply()
     {
@@ -24,6 +28,7 @@ class snowball extends CharacterTrait
         player.Weapon_Switch(weapon)
         SetPropFloat(weapon, "m_flNextPrimaryAttack", Time() + 9999)
         SetPropFloat(weapon, "m_flNextSecondaryAttack", Time() + 9999)
+		snowball_count = MAX_SNOWBALL_COUNT
         if (!debug)
             player.AddCond(TF_COND_CANNOT_SWITCH_FROM_MELEE)
     }
@@ -40,6 +45,8 @@ class snowball extends CharacterTrait
     {
         // collision
         snowball_collide_with_player()
+
+		pickup_snowball()
     }
 
     first_frame_after_throw = false
@@ -49,7 +56,7 @@ class snowball extends CharacterTrait
 
     function charge_snowball()
     {
-        if (!player.button_down(IN_ATTACK) || !can_fire) return
+        if (snowball_count <= 0 || !player.button_down(IN_ATTACK) || !can_fire) return
 
         charge_time += FrameTime()
         charge_time = min(charge_time, MAX_CHARGE)
@@ -68,7 +75,7 @@ class snowball extends CharacterTrait
 
     function release_snowball()
     {
-        if (Time() < can_fire_next || !player.button_released(IN_ATTACK) || !can_fire) return
+        if (snowball_count <= 0 || Time() < can_fire_next || !player.button_released(IN_ATTACK) || !can_fire) return
 
         snowball_projectile = Entities.CreateByClassname("tf_projectile_stun_ball")
         //Entities.DispatchSpawn(snowball_projectile) doing this makes it act like sandman ball, how to remove properties?
@@ -91,6 +98,8 @@ class snowball extends CharacterTrait
 
         //player.EmitSound("throw_snowball")
         can_fire_next = Time() + SNOWBALL_COOLDOWN
+
+		snowball_count--
     }
 
     function push_snowball()
@@ -109,9 +118,7 @@ class snowball extends CharacterTrait
 
     function snowball_collide_with_player()
     {
-        if (!snowball_projectile) return
-
-        local player = player
+        if (!snowball_projectile || !("GetOrigin" in snowball_projectile)) return
 
         local trace = fire_trace_hull
         (
@@ -121,7 +128,7 @@ class snowball extends CharacterTrait
             snowball_projectile,
             snowball_projectile.GetBoundingMins() * 2,
             snowball_projectile.GetBoundingMaxs() * 2,
-            function(entity)
+            function(entity, player = player)
             {
                 if (entity != player)
                     return TRACE_STOP
@@ -167,11 +174,27 @@ class snowball extends CharacterTrait
 
     function snowball_hit_something()
     {
+		//snowball_projectile.SetOwner(null)
         snowball_projectile = null
         can_fire = true
         charge_time = 0.0
         last_charge_time = 0
     }
+
+	// bug: potential to soft lock, need ways to regenerate snowballs other than thrown snowballs
+	function pickup_snowball()
+	{
+		if (!IsPlayerAlive(player)) return
+
+		local snowball = null
+		snowball = Entities.FindByClassnameNearest("tf_projectile_stun_ball", player.GetOrigin(), 48)
+
+		if (snowball && snowballs.find(snowball) != null && snowball_count < MAX_SNOWBALL_COUNT)
+		{
+			snowball_count++
+			snowballs.remove(snowballs.find(snowball)).Kill()
+		}
+	}
 }
 
 ::damage_victim <- function(victim, player, damage, origin)

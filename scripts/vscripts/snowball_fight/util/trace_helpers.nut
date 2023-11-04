@@ -29,9 +29,9 @@
         filter = tr_filter
     }
 
-    if (tr_debug) print_pre_trace(trace)
+    //if (tr_debug) print_pre_trace(trace)
     TraceHullFilter(trace)
-    if (tr_debug) print_trace(trace)
+    if (tr_debug && "enthit" in trace) print_trace(trace)
 
     return trace
 }

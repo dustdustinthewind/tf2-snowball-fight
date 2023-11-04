@@ -42,7 +42,11 @@ class freeze extends CharacterTrait
 	{
 		if (IsPlayerAlive(player) || !revive) return
 
-		revive.StopSound("Medic.AutoCallerAnnounce")
+		try {
+			revive.StopSound("Medic.AutoCallerAnnounce")
+		} catch (exception){
+
+		}
 	}
 
 	revive_location = null
@@ -60,7 +64,7 @@ class freeze extends CharacterTrait
 			-1,
 			player,
 			function(entity) { return TRACE_STOP },
-			false
+			true
 		)
 
 		if (!("enthit" in trace) || trace.enthit.GetClassname() != "entity_revive_marker" || trace.enthit.GetTeam() != player.GetTeam()) return
@@ -71,6 +75,8 @@ class freeze extends CharacterTrait
 		local revivee = GetPropEntity(trace.enthit, "m_hOwner")
 		if (trace.enthit.GetHealth() >= revivee.GetMaxHealth())
 		{
+			local snowball_count
+
 			revivee.ForceRegenerateAndRespawn()
 			revivee.SetHealth(revivee.GetMaxHealth() * 0.5)
 			SetPropInt(revivee, "m_Shared.m_nPlayerState", 0)
