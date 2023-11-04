@@ -10,13 +10,11 @@ WEAK_HIT_DMG <- 1.0 / 2.5
 REG_HIT_DMG  <- 1.0 / 1.5
 FULL_HIT_DMG_BONUS <- 25
 
-SNOWBALL_COOLDOWN <- 1
+SNOWBALL_COOLDOWN <- 0.8
 
 class snowball extends CharacterTrait
 {
     weapon = null
-
-    snowballs = []
 
     function OnApply()
     {

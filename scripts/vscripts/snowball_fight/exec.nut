@@ -19,6 +19,7 @@ Include("/util/input_manager.nut")
 Include("/util/weapon_helpers.nut")
 
 //Include("tables.nut")
+Include("snowball_manager.nut")
 Include("weapons_and_traits.nut")
 
 Convars.SetValue("mp_restartgame", 1)
