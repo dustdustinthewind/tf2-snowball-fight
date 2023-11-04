@@ -22,26 +22,37 @@ function player_pickup_snowball()
 {
 	foreach (index, snowball in snowballs)
 	{
-		local trace = fire_trace
-        (
-            snowball.GetOrigin()+Vector(0,0,20),
-            snowball.GetOrigin()+Vector(0,0,50),
-            1107296257,
-            snowball,
-            function(entity)
-            {
-				return TRACE_STOP
-            },
-            false
-        )
-
-		if ("enthit" in trace)
+		if (!snowball)
 		{
-			if (trace.enthit.GetClassname() == "player")
-			{
-				snowballs.remove(index).Kill()
-				// give snowball to player
-			}
+			snowballs.remove(index)
+			continue
 		}
+
+		try
+		{
+			local trace = fire_trace
+			(
+				snowball.GetOrigin()+Vector(0,0,20),
+				snowball.GetOrigin()+Vector(0,0,50),
+				1107296257,
+				snowball,
+				function(entity)
+				{
+					return TRACE_STOP
+				},
+				false
+			)
+
+			if ("enthit" in trace)
+			{
+				if (trace.enthit.GetClassname() == "player")
+				{
+					snowballs.remove(index).Kill()
+					// give snowball to player
+				}
+			}
+
+		}
+		catch (exception) { }
 	}
 }

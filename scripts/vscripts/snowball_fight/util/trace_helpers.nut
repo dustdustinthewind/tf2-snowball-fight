@@ -1,5 +1,3 @@
-
-
 ::fire_trace <- function(tr_start, tr_end, tr_mask, tr_ignore, tr_filter, tr_debug = debug)
 {
     local trace =

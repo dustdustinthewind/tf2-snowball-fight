@@ -95,7 +95,7 @@ class snowball extends CharacterTrait
 
     function push_snowball()
     {
-        if (!first_frame_after_throw) return
+        if (!first_frame_after_throw || !snowball_projectile) return
 
         first_frame_after_throw = false
         snowball_projectile.ApplyAbsVelocityImpulse
@@ -174,8 +174,9 @@ class snowball extends CharacterTrait
     }
 }
 
-damage_victim <- function(victim, player, damage, origin)
-{	victim.SetHealth(victim.GetHealth() - damage + 1) // damage player indirectly and without triggering hurt sounds
+::damage_victim <- function(victim, player, damage, origin)
+{
+	victim.SetHealth(victim.GetHealth() - damage) // damage player indirectly and without triggering hurt sounds
     victim.TakeDamageCustom
     (
         player,
