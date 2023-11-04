@@ -10,6 +10,8 @@ WEAK_HIT_DMG <- 1.0 / 2.5
 REG_HIT_DMG  <- 1.0 / 1.5
 FULL_HIT_DMG_BONUS <- 25
 
+SNOWBALL_COOLDOWN <- 1
+
 class snowball extends CharacterTrait
 {
     weapon = null
@@ -78,10 +80,11 @@ class snowball extends CharacterTrait
 
     snowball_projectile = null
     can_fire = true
+	can_fire_next = 0
 
     function release_snowball()
     {
-        if (!player.button_released(IN_ATTACK) || !can_fire) return
+        if (Time() < can_fire_next || !player.button_released(IN_ATTACK) || !can_fire) return
 
         snowball_projectile = Entities.CreateByClassname("tf_projectile_stun_ball")
         //Entities.DispatchSpawn(snowball_projectile) doing this makes it act like sandman ball, how to remove properties?
@@ -93,6 +96,7 @@ class snowball extends CharacterTrait
         snowball_projectile.SetMoveType(5, 1)
         //snowball_projectile.SetSolid(3) bounces off players (maybe for demo stickyballs)
         set_origin(snowball_projectile, player.EyePosition() - player.GetLeftVector() * -10)
+		snowball_projectile.ApplyLocalAngularVelocityImpulse(Vector(RandomInt(-1000, 1000), RandomInt(-1000, 1000), RandomInt(-1000, 1000)))
         snowball_projectile.SetTeam(player.GetTeam())
         snowball_projectile.SetOwner(player)
 
@@ -102,7 +106,7 @@ class snowball extends CharacterTrait
         player.RemoveCustomAttribute("move speed penalty")
 
         //player.EmitSound("throw_snowball")
-        //can_fire_next = Time() + SNOWBALL_COOLDOWN
+        can_fire_next = Time() + SNOWBALL_COOLDOWN
     }
 
     function snowball_collide_with_player()
