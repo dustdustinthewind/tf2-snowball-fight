@@ -8,6 +8,9 @@ class chill extends CharacterTrait
 
     function OnFrameTickAlive()
     {
+		// frozen, wait for revive
+		if (is_player_frozen(player)) return
+
         regen_health()
 
         slow_down()
@@ -36,6 +39,12 @@ class chill extends CharacterTrait
 
         local hp_percentage = max(0.6, 1.0*player.GetHealth() / player.GetMaxHealth())
         player.AddCustomAttribute("move speed bonus", hp_percentage, -1)
+
+		// indicate we've slowed
+		if (hp_percentage < 0.9)
+			player.AddCond(15)
+		else
+			player.RemoveCond(15)
 
         last_frame_hp = player.GetHealth()
     }

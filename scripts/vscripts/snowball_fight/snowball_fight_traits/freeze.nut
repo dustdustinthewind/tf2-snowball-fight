@@ -21,24 +21,56 @@ class freeze extends CharacterTrait
 	revive_marker = reviveMarker()
 	revive = null
 
+	frozen_location = null
+	frozen_angles = null
+	first_frame_after_death = false
+	dead = false
+
 	function OnDeath(attacker, params)
 	{
-		revive = reviveMarker.spawnReviveMarker(player, player.GetMaxHealth())
+		frozen_location = player.GetOrigin()
+		frozen_angles = player.GetAbsAngles()
+
+		first_frame_after_death = true
+		dead = true
+
+		/*revive = reviveMarker.spawnReviveMarker(player, player.GetMaxHealth())
 		revive.SetModel(player_models[player.GetPlayerClass()])
 		SetPropInt(revive, "m_nSkin", revive.GetTeam() - 2)
 		set_origin(revive, revive.GetOrigin() - Vector(0, 0, 40))
 		revive.SetVelocity(player.GetVelocity() * 0.5)
 		//if (!debug)
-			SetPropInt(player, "m_Shared.m_nPlayerState", 3) // Force player to be in the dying state so that they don't respawn
+			SetPropInt(player, "m_Shared.m_nPlayerState", 3) // Force player to be in the dying state so that they don't respawn*/
 	}
 
 	function OnFrameTickAlive()
 	{
+		/*
 		revive()
-		stop_reviving()
+		stop_reviving()*/
 	}
 
 	function OnFrameTickAliveOrDead()
+	{
+		if (dead && player.GetVelocity().Length() < 10)
+			player.RemoveCustomAttribute("move speed bonus")
+
+		if (!first_frame_after_death) return
+
+		GetPropEntity(player, "m_hRagdoll").Kill()
+		player.ForceRegenerateAndRespawn()
+		player.SetHealth(-player.GetMaxHealth())
+		player.AddCustomAttribute("move speed bonus", 0.01, -1)
+		player.AddCond(15)
+		player.SetForcedTauntCam(1)
+		SetPropInt(player, "movetype", 5)
+		//player.AddCond(87)
+		set_origin(player, frozen_location)
+
+		first_frame_after_death = false
+	}
+
+	/*function OnFrameTickAliveOrDead()
 	{
 		if (IsPlayerAlive(player) || !revive) return
 
@@ -47,7 +79,7 @@ class freeze extends CharacterTrait
 		} catch (exception){
 
 		}
-	}
+	}*/
 
 	revive_location = null
 
@@ -89,6 +121,11 @@ class freeze extends CharacterTrait
 
 		revive_location = null
 	}
+}
+
+::is_player_frozen <- function(player)
+{
+	return player.GetHealth() < 0
 }
 
 characterTraitsClasses.push(freeze)
