@@ -45,9 +45,9 @@ class freeze extends CharacterTrait
 
 	function OnFrameTickAlive()
 	{
-		/*
+		if (is_player_frozen(player)) return
 		revive()
-		stop_reviving()*/
+		stop_reviving()
 	}
 
 	function OnFrameTickAliveOrDead()
@@ -81,13 +81,11 @@ class freeze extends CharacterTrait
 		}
 	}*/
 
-	revive_location = null
+	reviving = false
 
 	function revive()
 	{
-		if (!player.button_down(IN_ATTACK3)) return
-
-		if (!revive_location) revive_location = player.GetOrigin()
+		if (!GetPropBool(player, "m_bUsingActionSlot") || !player.IsOnGround()) return
 
 		local trace = fire_trace
 		(
@@ -99,27 +97,32 @@ class freeze extends CharacterTrait
 			true
 		)
 
-		if (!("enthit" in trace) || trace.enthit.GetClassname() != "entity_revive_marker" || trace.enthit.GetTeam() != player.GetTeam()) return
+		if (!("enthit" in trace)
+		 || !trace.enthit.IsPlayer()
+		 || !is_player_frozen(trace.enthit)
+	   /*|| trace.enthit.GetTeam() != player.GetTeam()*/)
+	   		return
 
-		set_origin(player, revive_location)
+		reviving = true
 		damage_victim(trace.enthit, player, -1, trace.endpos)
 
-		local revivee = GetPropEntity(trace.enthit, "m_hOwner")
-		if (trace.enthit.GetHealth() >= revivee.GetMaxHealth())
+		if (trace.enthit.GetHealth() >= 0)
 		{
-			local snowball_count
-
-			revivee.ForceRegenerateAndRespawn()
-			revivee.SetHealth(revivee.GetMaxHealth() * 0.5)
-			SetPropInt(revivee, "m_Shared.m_nPlayerState", 0)
+			revive_player(trace.enthit)
 		}
+	}
+
+	function revive_player(revivee)
+	{
+		damage_victim(revivee, revivee, -revivee.GetMaxHealth() * 0.5, revivee.GetOrigin())
 	}
 
 	function stop_reviving()
 	{
-		if (!player.button_up(IN_ATTACK3)) return
+		if (!reviving || GetPropBool(player, "m_bUsingActionSlot")) return
 
-		revive_location = null
+		SetPropInt(player, "movetype", 1)
+		reviving = false
 	}
 }
 

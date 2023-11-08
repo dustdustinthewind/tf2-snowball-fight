@@ -1,4 +1,4 @@
-::hsdm_vscript <- this
+::snowball_fight_vscript <- this
 
 ::team_round_timer <- null
 
@@ -11,7 +11,7 @@ function SpawnEntities()
 	team_round_timer.ValidateScriptScope()
 	team_round_timer.GetScriptScope().Tick <- function()
 	{
-		hsdm_vscript.FireListeners("tick_frame")
+		snowball_fight_vscript.FireListeners("tick_frame")
 		return 0
 	}
 	AddThinkToEnt(team_round_timer, "Tick")

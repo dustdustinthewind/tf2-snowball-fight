@@ -180,4 +180,5 @@ function OnGameEvent_item_pickup(params)
 function OnGameEvent_teamplay_round_start(params)
 {
 	SpawnEntities()
+	isRoundOver = false
 }

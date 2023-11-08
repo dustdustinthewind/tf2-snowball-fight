@@ -14,7 +14,7 @@ HEAVY_DMG_RES <- 0.6
 
 SNOWBALL_COOLDOWN <- 0.8
 
-MAX_SNOWBALL_COUNT <- 5
+MAX_SNOWBALL_COUNT <- 10
 
 class snowball extends CharacterTrait
 {
@@ -35,19 +35,27 @@ class snowball extends CharacterTrait
 
     function OnFrameTickAlive()
     {
+		if (is_player_frozen(player)) return //frozen wait for revive
+
         // throwing snowball
         push_snowball()
         charge_snowball()
         release_snowball()
+
+		pickup_snowball()
+		convert_ammo_to_snowball()
     }
 
     function OnFrameTickAliveOrDead()
     {
         // collision
         snowball_collide_with_player()
-
-		pickup_snowball()
     }
+
+	function OnDeath(attacker, params)
+	{
+
+	}
 
     first_frame_after_throw = false
 
@@ -81,11 +89,9 @@ class snowball extends CharacterTrait
         //Entities.DispatchSpawn(snowball_projectile) doing this makes it act like sandman ball, how to remove properties?
 
         snowball_projectile.SetModel(baseball_projectile_model)
-        SetPropInt(snowball_projectile, "movecollide", 1)
         SetPropEntity(snowball_projectile, "m_hEffectEntity", player)
         snowball_projectile.SetCollisionGroup(13)
         snowball_projectile.SetMoveType(5, 1)
-        //snowball_projectile.SetSolid(3) bounces off players (maybe for demo stickyballs)
         set_origin(snowball_projectile, player.EyePosition() - player.GetLeftVector() * -10)
 		snowball_projectile.ApplyLocalAngularVelocityImpulse(Vector(RandomInt(-1000, 1000), RandomInt(-1000, 1000), RandomInt(-1000, 1000)))
         snowball_projectile.SetTeam(player.GetTeam())
@@ -140,25 +146,30 @@ class snowball extends CharacterTrait
         if ("enthit" in trace)
         {
 			local to_manager = true
-            if (trace.enthit.GetClassname() == "player" && trace.enthit.GetTeam() != player.GetTeam())
+            if (trace.enthit.IsPlayer() && trace.enthit.GetTeam() != player.GetTeam())
             {
-				local damage = last_charge_time < WEAK_CHARGE
-					? WEAK_HIT_DMG
-					: REG_HIT_DMG
-				damage *= trace.enthit.GetPlayerClass() == 6 /*heavy*/
-					? HEAVY_DMG_RES
-					: 1.0
+				if (is_player_frozen(trace.enthit))
+					snowball_projectile.SetSolid(3) //bounces off players (buggy)
+				else
+				{
+					local damage = last_charge_time < WEAK_CHARGE
+						? WEAK_HIT_DMG
+						: REG_HIT_DMG
+					damage *= trace.enthit.GetPlayerClass() == 6 /*heavy*/
+						? HEAVY_DMG_RES
+						: 1.0
 
-				local dmg_bonus = last_charge_time >= FULL_CHARGE ? FULL_HIT_DMG_BONUS : 0
-                damage_victim
-                (
-                    trace.enthit,
-                    player,
-                    (damage * trace.enthit.GetMaxHealth()) + dmg_bonus,
-                    snowball_projectile.GetOrigin()
-                )
-                snowball_projectile.Destroy()
-				to_manager = false
+					local dmg_bonus = last_charge_time >= FULL_CHARGE ? FULL_HIT_DMG_BONUS : 0
+					damage_victim
+					(
+						trace.enthit,
+						player,
+						(damage * trace.enthit.GetMaxHealth()) + dmg_bonus,
+						snowball_projectile.GetOrigin()
+					)
+					snowball_projectile.Destroy()
+					to_manager = false
+				}
             }
 
 			if (to_manager)
@@ -184,8 +195,6 @@ class snowball extends CharacterTrait
 	// bug: potential to soft lock, need ways to regenerate snowballs other than thrown snowballs
 	function pickup_snowball()
 	{
-		if (!IsPlayerAlive(player)) return
-
 		local snowball = null
 		snowball = Entities.FindByClassnameNearest("tf_projectile_stun_ball", player.GetOrigin(), 48)
 
@@ -194,6 +203,19 @@ class snowball extends CharacterTrait
 			snowball_count++
 			snowballs.remove(snowballs.find(snowball)).Kill()
 		}
+	}
+
+	function convert_ammo_to_snowball()
+	{
+		local ammo = null
+		ammo = Entities.FindByClassnameNearest("item_ammopack_*", player.GetOrigin(), 48)
+
+		if (!ammo || snowball_count >= MAX_SNOWBALL_COUNT) return
+
+		snowball_count = min(MAX_SNOWBALL_COUNT, snowball_count + 3)
+		local origin = ammo.GetOrigin()
+		set_origin(ammo, Vector(9999,9999,9999))
+		EntFireByHandle(ammo, "RunScriptCode", "set_origin(self, Vector(" + origin.x + "," + origin.y + "," + origin.z + "))", 10, ammo, null)
 	}
 }
 

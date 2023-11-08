@@ -12,17 +12,22 @@
 //=========================================================================
 
 // modified for momentus by dust
-// removed all references to mercs
+//  removed all references to mercs
+//  added red and blue teams
 
 ::validClients <- [];
 ::validPlayers <- [];
 ::alivePlayers <- [];
+::red_players  <- []
+::blu_players  <- []
 
 ::RecachePlayers <- function()
 {
     local validClientsL = [];
     local validPlayersL = [];
     local alivePlayersL = [];
+	local red_playersL  = []
+	local blu_playersL  = []
     for (local i = 1; i <= MAX_PLAYERS; i++)
     {
         local player = PlayerInstanceFromIndex(i);
@@ -32,6 +37,10 @@
             if (player.GetTeam() > TF_TEAM_SPECTATOR)
             {
                 validPlayersL.push(player);
+				if (player.GetTeam() == TF_TEAM_RED)
+					red_playersL.push(player)
+				else
+					blu_playersL.push(player)
 
                 local isAlive = IsPlayerAlive(player);
 
@@ -43,6 +52,8 @@
     validClients = validClientsL;
     validPlayers = validPlayersL;
     alivePlayers = alivePlayersL;
+	red_players  = red_playersL
+	blu_players  = blu_playersL
 };
 AddListener("tick_frame", -9999, RecachePlayers);
 AddListener("tick_always", -9999, function(tickDelta)
