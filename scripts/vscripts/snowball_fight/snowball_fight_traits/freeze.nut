@@ -45,7 +45,11 @@ class freeze extends CharacterTrait
 
 	function OnFrameTickAlive()
 	{
-		if (is_player_frozen(player)) return
+		if (is_player_frozen(player))
+		{
+			player.SetHealth(max(-player.GetMaxHealth(), player.GetHealth() - 1))
+			return
+		}
 		revive()
 		stop_reviving()
 	}
@@ -85,7 +89,11 @@ class freeze extends CharacterTrait
 
 	function revive()
 	{
-		if (!GetPropBool(player, "m_bUsingActionSlot") || !player.IsOnGround()) return
+		if (!GetPropBool(player, "m_bUsingActionSlot") || !player.IsOnGround())
+		{
+			reviving = false
+			return
+		}
 
 		local trace = fire_trace
 		(
@@ -94,34 +102,38 @@ class freeze extends CharacterTrait
 			-1,
 			player,
 			function(entity) { return TRACE_STOP },
-			true
+			false
 		)
 
 		if (!("enthit" in trace)
 		 || !trace.enthit.IsPlayer()
 		 || !is_player_frozen(trace.enthit)
-	   /*|| trace.enthit.GetTeam() != player.GetTeam()*/)
-	   		return
+	     || trace.enthit.GetTeam() != player.GetTeam())
+	   	{
+			reviving = false
+			return
+		}
 
 		reviving = true
-		damage_victim(trace.enthit, player, -1, trace.endpos)
+		SetPropInt(player, "movetype", 0)
+		damage_victim(trace.enthit, player, -2, trace.endpos)
 
 		if (trace.enthit.GetHealth() >= 0)
-		{
 			revive_player(trace.enthit)
-		}
 	}
 
 	function revive_player(revivee)
 	{
 		damage_victim(revivee, revivee, -revivee.GetMaxHealth() * 0.5, revivee.GetOrigin())
+		SetPropInt(revivee, "movetype", 2)
+		reviving = false
 	}
 
 	function stop_reviving()
 	{
-		if (!reviving || GetPropBool(player, "m_bUsingActionSlot")) return
+		if (reviving) return
 
-		SetPropInt(player, "movetype", 1)
+		SetPropInt(player, "movetype", 2)
 		reviving = false
 	}
 }

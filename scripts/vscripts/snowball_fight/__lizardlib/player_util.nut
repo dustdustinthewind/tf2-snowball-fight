@@ -34,7 +34,7 @@
 {
     try
     {
-        return player != null && (player.IsValid() && player.IsPlayer()) || (debug && player.IsBotOfType(1337));
+        return player != null && (player.IsValid() && player.IsPlayer());
     }
     catch(e)
     {
